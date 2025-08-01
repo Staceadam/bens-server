@@ -1,0 +1,109 @@
+version: '3'
+services:
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    volumes:
+      - ./services/qbittorrent/config:/config
+      - ./downloads:/downloads
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  radarr:
+    image: linuxserver/radarr:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./services/radarr/config:/config
+      # /media should be linked to where ever your external or biggest storage location is
+      - /media/Movies:/movies
+      - ./downloads:/downloads
+    ports:
+      - 7878:7878
+      - 7879:7879
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./services/sonarr/config:/config
+      # /media should be linked to where ever your external or biggest storage location is
+      - /media/TV Shows:/tv
+      - ./downloads:/downloads
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./services/prowlarr/config:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  overseerr:
+    image: sctx/overseerr:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - LOG_LEVEL=debug
+      - PORT=5055
+    volumes:
+      - ./services/overseerr/config:/app/config
+      - ./services/overseerr/logs:/app/config/logs
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  plex:
+    image: linuxserver/plex:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - VERSION=docker
+      - PLEX_CLAIM= # optional
+    volumes:
+      - ./services/plex/config:/config
+      # /media should be linked to where ever your external or biggest storage location is
+      - /media/TV Shows:/tv
+      # /media should be linked to where ever your external or biggest storage location is
+      - /media/Movies:/movies
+    ports:
+      - 32400:32400
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
